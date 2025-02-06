@@ -8,11 +8,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
-# Add Python version check for buffer API
-if(Python_VERSION VERSION_GREATER_EQUAL 3.13)
-    add_definitions(-DPY_VERSION_HEX=0x030D0000)
-endif()
-
 if(CMAKE_CXX_COMPILER_ID STREQUAL Clang)
     set(CLANG_DEFAULT_CXX_STDLIB libc++)
     set(CLANG_DEFAULT_RTLIB compiler-rt)
