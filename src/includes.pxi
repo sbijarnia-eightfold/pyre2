@@ -6,6 +6,22 @@ from cpython.buffer cimport Py_buffer, PyBUF_SIMPLE, PyObject_CheckBuffer, \
         PyObject_GetBuffer, PyBuffer_Release
 from cpython.version cimport PY_MAJOR_VERSION
 
+# Add version check for buffer API
+cdef extern from *:
+    cdef void emit_if_py313 "#if PY_VERSION_HEX >= 0x030D0000 //" ()
+    cdef void emit_else "#else //" ()
+    cdef void emit_endif "#endif //" ()
+
+cdef extern from "Python.h":
+    # Keep old buffer API for older Python versions
+    emit_if_py313()
+    int PyObject_CheckBuffer(object)
+    int PyObject_GetBuffer(object, Py_buffer*, int)
+    emit_else()
+    int PyObject_CheckReadBuffer(object)
+    int PyObject_AsReadBuffer(object, const void **, Py_ssize_t *)
+    emit_endif()
+
 
 cdef extern from *:
     cdef void emit_if_narrow_unicode "#if !defined(Py_UNICODE_WIDE) && PY_VERSION_HEX < 0x03030000 //" ()
@@ -107,3 +123,23 @@ cdef extern from "_re2macros.h":
 cdef extern from *:
     # StringPiece * new_StringPiece_array "new re2::StringPiece[n]" (int) nogil
     void delete_StringPiece_array "delete[]" (StringPiece *) nogil
+
+# Add compatibility layer for Python 3.13+
+cdef extern from *:
+    """
+    #if PY_VERSION_HEX >= 0x030D0000
+    // Provide compatibility for removed buffer APIs in Python 3.13+
+    static int PyObject_CheckReadBuffer(PyObject *o) {
+        return PyObject_CheckBuffer(o);
+    }
+    
+    static int PyObject_AsReadBuffer(PyObject *obj, const void **buffer, Py_ssize_t *buffer_len) {
+        Py_buffer view;
+        if (PyObject_GetBuffer(obj, &view, PyBUF_SIMPLE) < 0) return -1;
+        *buffer = view.buf;
+        *buffer_len = view.len;
+        PyBuffer_Release(&view);
+        return 0;
+    }
+    #endif
+    """

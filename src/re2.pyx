@@ -357,28 +357,23 @@ cdef inline unicode_to_bytes(object pystring, int * encoded,
     return pystring
 
 
-cdef inline int pystring_to_cstring(
-        object pystring, char ** cstring, Py_ssize_t * size,
-        Py_buffer * buf):
-    """Get a pointer from bytes/buffer object ``pystring``.
-
-    On success, return 0, and set ``cstring``, ``size``, and ``buf``."""
-    cdef int result = -1
-    cstring[0] = NULL
-    size[0] = 0
-    if PY2:
-        # Although the new-style buffer interface was backported to Python 2.6,
-        # some modules, notably mmap, only support the old buffer interface.
-        # Cf. http://bugs.python.org/issue9229
-        if PyObject_CheckReadBuffer(pystring) == 1:
-            result = PyObject_AsReadBuffer(
-                    pystring, <const void **>cstring, size)
-    elif PyObject_CheckBuffer(pystring) == 1:  # new-style Buffer interface
-        result = PyObject_GetBuffer(pystring, buf, PyBUF_SIMPLE)
-        if result == 0:
-            cstring[0] = <char *>buf.buf
-            size[0] = buf.len
-    return result
+cdef int pystring_to_cstring(object pystring, char **cstring, Py_ssize_t *size, Py_buffer *view) except -1:
+    emit_if_py313()
+    if PyObject_CheckBuffer(pystring):
+        if PyObject_GetBuffer(pystring, view, PyBUF_SIMPLE) < 0:
+            return -1
+        cstring[0] = <char*>view.buf
+        size[0] = view.len
+        return 0
+    emit_else()
+    if PyObject_CheckReadBuffer(pystring):
+        cdef const void *buffer
+        if PyObject_AsReadBuffer(pystring, &buffer, size) < 0:
+            return -1
+        cstring[0] = <char*>buffer
+        return 0
+    emit_endif()
+    return -1
 
 
 cdef inline void release_cstring(Py_buffer *buf):

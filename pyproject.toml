@@ -2,8 +2,8 @@
 requires = [
     "setuptools>=42",
     "setuptools_scm[toml]>=6.2",
-    "Cython>=0.20",
-    "pybind11>=2.12",
+    "Cython>=3.0.6",
+    "pybind11>=2.13",
     "ninja; sys_platform != 'Windows'",
     "cmake>=3.18",
 ]
