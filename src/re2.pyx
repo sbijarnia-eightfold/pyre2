@@ -463,42 +463,6 @@ cdef void unicodeindices(map[int, int] &positions,
                 break
 
 
-def get_python_version():
-    """Return the current Python version as a tuple."""
-    return (PY_MAJOR_VERSION, PY_VERSION_HEX)
-
-def test_buffer_protocol(data):
-    """Test buffer protocol compatibility.
-    
-    Args:
-        data: A bytes or buffer-like object to test
-        
-    Returns:
-        dict: Results of buffer protocol tests
-    """
-    cdef:
-        char *cstring = NULL
-        Py_ssize_t size = 0
-        Py_buffer view
-        const void *buffer
-        PyObject* obj = <PyObject*>data
-        
-    results = {
-        'check_buffer': PyObject_CheckBuffer(obj),
-        'check_read_buffer': PyObject_CheckReadBuffer(obj),
-        'get_buffer': False,
-        'as_read_buffer': False
-    }
-    
-    if PyObject_GetBuffer(obj, &view, PyBUF_SIMPLE) >= 0:
-        results['get_buffer'] = True
-        PyBuffer_Release(&view)
-        
-    if PyObject_AsReadBuffer(obj, &buffer, &size) >= 0:
-        results['as_read_buffer'] = True
-        
-    return results
-
 __all__ = [
         # exceptions
         'BackreferencesException', 'CharClassProblemException',
