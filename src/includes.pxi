@@ -5,7 +5,6 @@ from cython.operator cimport postincrement, dereference
 from cpython.buffer cimport Py_buffer, PyBUF_SIMPLE, PyObject_CheckBuffer, \
         PyObject_GetBuffer, PyBuffer_Release
 from cpython.version cimport PY_MAJOR_VERSION
-from cpython.object cimport PyObject
 
 cdef extern from *:
     cdef void emit_if_narrow_unicode "#if !defined(Py_UNICODE_WIDE) && PY_VERSION_HEX < 0x03030000 //" ()
