@@ -2,45 +2,19 @@ cimport cpython.unicode
 from libcpp.map cimport map
 from libcpp.string cimport string as cpp_string
 from cython.operator cimport postincrement, dereference
-from cpython.buffer cimport Py_buffer, PyBUF_SIMPLE
+from cpython.buffer cimport Py_buffer, PyBUF_SIMPLE, PyObject_CheckBuffer, \
+        PyObject_GetBuffer, PyBuffer_Release
 from cpython.version cimport PY_MAJOR_VERSION
 from cpython.object cimport PyObject
-
-# Add version check for buffer API
-cdef extern from "Python.h":
-    """
-    #if PY_VERSION_HEX >= 0x030D0000
-    // Python 3.13+ - use only new buffer protocol
-    static int PyObject_CheckReadBuffer(PyObject* obj) {
-        return PyObject_CheckBuffer(obj);
-    }
-    
-    static int PyObject_AsReadBuffer(PyObject* obj, const void** buffer, Py_ssize_t* buffer_len) {
-        Py_buffer view;
-        if (PyObject_GetBuffer(obj, &view, PyBUF_SIMPLE) < 0) return -1;
-        *buffer = view.buf;
-        *buffer_len = view.len;
-        PyBuffer_Release(&view);
-        return 0;
-    }
-    #endif
-    """
-    # Buffer protocol functions
-    int PyObject_CheckBuffer(PyObject* obj)
-    int PyObject_GetBuffer(PyObject* obj, Py_buffer* view, int flags)
-    void PyBuffer_Release(Py_buffer* view)
-    int PyObject_CheckReadBuffer(PyObject* obj)
-    int PyObject_AsReadBuffer(PyObject* obj, const void** buffer, Py_ssize_t* buffer_len)
-
 
 cdef extern from *:
     cdef void emit_if_narrow_unicode "#if !defined(Py_UNICODE_WIDE) && PY_VERSION_HEX < 0x03030000 //" ()
     cdef void emit_endif "#endif //" ()
 
 
-cdef extern from "Python.h":
-    int PyObject_CheckReadBuffer(object)
-    int PyObject_AsReadBuffer(object, const void **, Py_ssize_t *)
+#cdef extern from "Python.h":
+#    int PyObject_CheckReadBuffer(object)
+#    int PyObject_AsReadBuffer(object, const void **, Py_ssize_t *)
 
 
 cdef extern from "re2/stringpiece.h" namespace "re2":
@@ -51,7 +25,6 @@ cdef extern from "re2/stringpiece.h" namespace "re2":
         const char * data()
         int copy(char * buf, size_t n, size_t pos)
         int length()
-
 
 cdef extern from "re2/re2.h" namespace "re2":
     cdef enum Anchor:
