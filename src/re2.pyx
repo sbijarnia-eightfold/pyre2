@@ -356,8 +356,12 @@ cdef inline unicode_to_bytes(object pystring, int * encoded,
         raise TypeError("can't use a bytes pattern on a string-like object")
     return pystring
 
-cdef inline int pystring_to_cstring(object pystring, char ** cstring, Py_ssize_t * size, Py_buffer * buf):
+
+cdef inline int pystring_to_cstring(
+        object pystring, char ** cstring, Py_ssize_t * size,
+        Py_buffer * buf):
     """Get a pointer from bytes/buffer object ``pystring``.
+
     On success, return 0, and set ``cstring``, ``size``, and ``buf``."""
     cdef int result = -1
     cstring[0] = NULL
@@ -368,6 +372,7 @@ cdef inline int pystring_to_cstring(object pystring, char ** cstring, Py_ssize_t
             cstring[0] = <char *>buf.buf
             size[0] = buf.len
     return result
+
 
 cdef inline void release_cstring(Py_buffer *buf):
     """Release buffer if necessary."""
