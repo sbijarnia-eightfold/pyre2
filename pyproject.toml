@@ -11,7 +11,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
-fallback_version = "0.3.7"
+fallback_version = "ef.0.1"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
